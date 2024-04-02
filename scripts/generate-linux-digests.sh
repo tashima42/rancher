@@ -23,7 +23,7 @@ for image in $(cat $IMAGES_FILE); do
         DIGEST=$(echo -n "${INSPECT_JSON}" | sha256sum | awk '{ print $1 }')
         for arch in "${archs[@]}"; do
             if echo "${INSPECT_JSON}" | jq -e  --arg ARCH "$arch" 'select(.manifests[].platform.architecture == $ARCH)' >/dev/null 2>&1; then
-                echo "docker.io/${image} sha256:${DIGEST}" >> "${DIGEST_TEMPLATE_FILENAME}-${arch}.txt"
+                echo "stgregistry.suse.com/${image} sha256:${DIGEST}" >> "${DIGEST_TEMPLATE_FILENAME}-${arch}.txt"
             fi
         done
     else
@@ -32,7 +32,7 @@ for image in $(cat $IMAGES_FILE); do
             if echo "${INSPECT_JSON}" | jq -e --arg ARCH "$arch" '.Architecture == $ARCH' >/dev/null 2>&1; then
                 echo "Image: ${image}, arch ${arch}, FOUND"
                 DIGEST=$(skopeo --override-arch $arch inspect "docker://${image}" --raw | sha256sum | awk '{ print $1 }')
-                echo "docker.io/${image} sha256:${DIGEST}" >> "${DIGEST_TEMPLATE_FILENAME}-${arch}.txt"
+                echo "stgregistry.suse.com/${image} sha256:${DIGEST}" >> "${DIGEST_TEMPLATE_FILENAME}-${arch}.txt"
             else
                 echo "Image: ${image}, arch ${arch}, NOT_FOUND"
             fi
