@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 if ./scripts/only-ui-bumps.sh; then
     exit 0
 fi

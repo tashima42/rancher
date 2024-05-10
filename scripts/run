@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 
 echo Starting rancher server
 cd $(dirname $0)/..
