@@ -24,7 +24,7 @@ jobs:
         run: apk add -U git
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Run K3S Provisioning tests
+      - name: Run RKE2 Provisioning tests
         env:
           V2PROV_TEST_DIST: "rke2"
           V2PROV_TEST_RUN_REGEX: "^Test_(General|Provisioning)_.*$"
