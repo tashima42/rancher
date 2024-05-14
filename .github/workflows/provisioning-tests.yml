@@ -6,8 +6,6 @@ jobs:
     # container:
     #   image: rancher/dapper:v0.6.0
     steps:
-      - name: Add Git
-        run: apk add -U git
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Run K3S Provisioning tests
@@ -22,8 +20,6 @@ jobs:
     # container:
     #   image: rancher/dapper:v0.6.0
     steps:
-      - name: Add Git
-        run: apk add -U git
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Run RKE2 Provisioning tests
