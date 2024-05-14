@@ -14,7 +14,9 @@ jobs:
         env:
           V2PROV_TEST_DIST: "k3s"
           V2PROV_TEST_RUN_REGEX: "^Test_(General|Provisioning)_.*$"
-        run: dapper provisioning-tests
+        run: ./scripts/provisioning-tests
+        shell: bash
+          
   provisioning-tests-rke2:
     runs-on: ubuntu-latest
     container:
@@ -28,4 +30,5 @@ jobs:
         env:
           V2PROV_TEST_DIST: "rke2"
           V2PROV_TEST_RUN_REGEX: "^Test_(General|Provisioning)_.*$"
-        run: dapper provisioning-tests
+        run: ./scripts/provisioning-tests
+        shell: bash
