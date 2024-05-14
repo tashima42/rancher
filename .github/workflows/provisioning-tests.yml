@@ -3,8 +3,8 @@ on: [pull_request]
 jobs:
   provisioning-tests-k3s:
     runs-on: ubuntu-latest
-    container:
-      image: rancher/dapper:v0.6.0
+    # container:
+    #   image: rancher/dapper:v0.6.0
     steps:
       - name: Add Git
         run: apk add -U git
@@ -19,8 +19,8 @@ jobs:
           
   provisioning-tests-rke2:
     runs-on: ubuntu-latest
-    container:
-      image: rancher/dapper:v0.6.0
+    # container:
+    #   image: rancher/dapper:v0.6.0
     steps:
       - name: Add Git
         run: apk add -U git
