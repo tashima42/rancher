@@ -32,4 +32,3 @@ jobs:
           V2PROV_TEST_DIST: "rke2"
           V2PROV_TEST_RUN_REGEX: "^Test_(General|Provisioning)_.*$"
         run: dapper provisioning-tests
-        shell: bash
