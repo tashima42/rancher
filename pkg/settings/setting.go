@@ -19,7 +19,6 @@ import (
 const RancherVersionDev = "2.7.99"
 
 var (
-
 	releasePattern = regexp.MustCompile("^v[0-9]")
 	settings       = map[string]Setting{}
 	provider       Provider
