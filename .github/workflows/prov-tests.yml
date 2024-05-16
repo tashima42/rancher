@@ -7,10 +7,10 @@ jobs:
       fail-fast: false
       matrix:
         test:
-        - "General_SystemAgentVersion"
-        - "General_WinsAgentVersion"
-        - "General_CSIProxyAgentVersion"
-        # - "Provisioning_Custom_OneNodeWithDelete"
+        # - "General_SystemAgentVersion"
+        # - "General_WinsAgentVersion"
+        # - "General_CSIProxyAgentVersion"
+        - "Provisioning_Custom_OneNodeWithDelete"
         # - "Provisioning_Custom_ThreeNode"
         # - "Provisioning_Custom_UniqueRoles"
         # - "Provisioning_Custom_ThreeNodeWithTaints"
