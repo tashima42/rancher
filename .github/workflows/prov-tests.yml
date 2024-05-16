@@ -19,6 +19,14 @@ jobs:
     name: Provisioning tests
     runs-on: ubuntu-latest
     steps:
+      - name: Space
+        run: df -h
+      - name: Prune
+        run: |
+          docker image ls -a
+          docker system prune -a -f
+          docker image ls -a
+          df -h
       - name: Checkout
         uses: actions/checkout@v4
       - name: Say hello
@@ -60,7 +68,6 @@ jobs:
         with:
           name: ${{ matrix.test }}-rancher.log
           path: ./build/testdata/rancher.log
-  
       - name: Upload k3s log
         if: always()
         uses: actions/upload-artifact@v4
@@ -68,14 +75,12 @@ jobs:
           name: ${{ matrix.test }}-k3s.log
           path: ./build/testdata/k3s.log
       - name: Space
+        run: df -h
+      - name: Prune
         run: |
-          docker ps -a
-          docker image ls
-          docker image ls -a
-          docker system prune -f
           docker image ls -a
           docker system prune -a -f
-          docker system prune -a -f --volumes
+          docker image ls -a
           df -h
       - name: Say goodbye
         run: echo "Tests completed"
