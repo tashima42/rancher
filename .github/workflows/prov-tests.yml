@@ -68,4 +68,13 @@ jobs:
           name: ${{ matrix.test }}-k3s.log
           path: ./build/testdata/k3s.log
       - name: Say goodbye
+        run: |
+          docker ps -a
+          docker image ls
+          docker image ls -a
+          docker system prune -f
+          docker image ls -a
+          docker system prune -a -f
+          docker system prune -a -f --volumes
+      - name: Say goodbye
         run: echo "Tests completed"
