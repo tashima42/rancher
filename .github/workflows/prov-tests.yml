@@ -4,6 +4,7 @@ on:
 jobs:
   provisioning_tests:
     strategy:
+      fail-fast: false
       matrix:
         test:
         - "General_"
