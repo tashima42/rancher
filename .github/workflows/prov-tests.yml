@@ -2,8 +2,14 @@ name: Provisioning tests
 on:
   workflow_dispatch:
 jobs:
-  test_general:
-    name: Provisioning (General)
+  provisioning_tests:
+    strategy:
+      matrix:
+        V2PROV_TEST_RUN_REGEX:
+        - "^Test_General_.*$"
+        - "^Test_Provisioning_.*$"
+        - "^Test_Fleet_.*$"
+    name: Provisioning tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -16,14 +22,12 @@ jobs:
           chmod +x /usr/local/bin/dapper
       - name: Dapper version
         run: dapper --version
-      # - name: Run tests
-      #   run: ./scripts/provisioning-tests
       - name: Docker version
         run: docker version
       - name: Run dapper
         run: dapper provisioning-tests
         env:
-          V2PROV_TEST_RUN_REGEX: "^Test_General_.*$"
+          V2PROV_TEST_RUN_REGEX: ${{ matrix.V2PROV_TEST_RUN_REGEX }}
       - name: Output size of rancher.log
         if: always()
         run: |
