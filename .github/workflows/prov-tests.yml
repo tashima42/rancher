@@ -29,6 +29,9 @@ jobs:
           df -h
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 15
       - name: Say hello
         run: echo "Running tests"
       - name: Install Dapper
