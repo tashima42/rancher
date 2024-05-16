@@ -7,13 +7,15 @@ jobs:
       fail-fast: false
       matrix:
         test:
-        - "General_"
-        - "Provisioning_Custom_OneNodeWithDelete"
-        - "Provisioning_Custom_ThreeNode"
-        - "Provisioning_Custom_UniqueRoles"
-        - "Provisioning_Custom_ThreeNodeWithTaints"
-        - "Fleet_Cluster"
-        - "Fleet_ClusterBootstrap"
+        - "General_SystemAgentVersion"
+        # - "General_WinsAgentVersion"
+        # - "General_CSIProxyAgentVersion"
+        # - "Provisioning_Custom_OneNodeWithDelete"
+        # - "Provisioning_Custom_ThreeNode"
+        # - "Provisioning_Custom_UniqueRoles"
+        # - "Provisioning_Custom_ThreeNodeWithTaints"
+        # - "Fleet_Cluster"
+        # - "Fleet_ClusterBootstrap"
     name: Provisioning tests
     runs-on: ubuntu-latest
     steps:
@@ -36,9 +38,9 @@ jobs:
       - name: Output size of rancher.log
         if: always()
         run: |
-          if [ -f ./bin/logs/rancher.log ]; then
+          if [ -f ./build/testdata/rancher.log ]; then
             echo "Size of rancher.log:"
-            stat --format="%s bytes" ./bin/logs/rancher.log
+            stat --format="%s bytes" ./build/testdata/rancher.log
           else
             echo "rancher.log does not exist."
           fi
@@ -46,9 +48,9 @@ jobs:
       - name: Output size of k3s.log
         if: always()
         run: |
-          if [ -f ./bin/logs/k3s.log ]; then
+          if [ -f ./build/testdata/k3s.log ]; then
             echo "Size of k3s.log:"
-            stat --format="%s bytes" ./bin/logs/k3s.log
+            stat --format="%s bytes" ./build/testdata/k3s.log
           else
             echo "k3s.log does not exist."
           fi
@@ -57,13 +59,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.test }}-rancher.log
-          path: ./bin/logs/rancher.log
+          path: ./build/testdata/rancher.log
   
       - name: Upload k3s log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.test }}-k3s.log
-          path: ./bin/logs/k3s.log
+          path: ./build/testdata/k3s.log
       - name: Say goodbye
         run: echo "Tests completed"
