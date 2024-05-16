@@ -1,0 +1,76 @@
+name: Provisioning tests
+on:
+  workflow_dispatch:
+jobs:
+  test_general:
+    name: Provisioning (General)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Say hello
+        run: echo "Running tests"
+      - name: Install Dapper
+        run: |
+          curl -sL https://releases.rancher.com/dapper/latest/dapper-$(uname -s)-$(uname -m) > /usr/local/bin/dapper
+          chmod +x /usr/local/bin/dapper
+      - name: Dapper version
+        run: dapper --version
+      # - name: Run tests
+      #   run: ./scripts/provisioning-tests
+      - name: Docker version
+        run: docker version
+      - name: Run dapper
+        run: dapper provisioning-tests
+        env:
+          V2PROV_TEST_RUN_REGEX: "^Test_General_.*$"
+      - name: Say goodbye
+        run: echo "Tests completed"
+  test_provisioning:
+    name: Provisioning (Provisioning)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Say hello
+        run: echo "Running tests"
+      - name: Install Dapper
+        run: |
+          curl -sL https://releases.rancher.com/dapper/latest/dapper-$(uname -s)-$(uname -m) > /usr/local/bin/dapper
+          chmod +x /usr/local/bin/dapper
+      - name: Dapper version
+        run: dapper --version
+      # - name: Run tests
+      #   run: ./scripts/provisioning-tests
+      - name: Docker version
+        run: docker version
+      - name: Run dapper
+        run: dapper provisioning-tests
+        env:
+          V2PROV_TEST_RUN_REGEX: "^Test_Provisioning_.*$"
+      - name: Say goodbye
+        run: echo "Tests completed"
+  test_fleet:
+    name: Provisioning (Fleet)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Say hello
+        run: echo "Running tests"
+      - name: Install Dapper
+        run: |
+          curl -sL https://releases.rancher.com/dapper/latest/dapper-$(uname -s)-$(uname -m) > /usr/local/bin/dapper
+          chmod +x /usr/local/bin/dapper
+      - name: Dapper version
+        run: dapper --version
+      # - name: Run tests
+      #   run: ./scripts/provisioning-tests
+      - name: Docker version
+        run: docker version
+      - name: Run dapper
+        run: dapper provisioning-tests
+        env:
+          V2PROV_TEST_RUN_REGEX: "^Test_Fleet_.*$"
+      - name: Say goodbye
+        run: echo "Tests completed"
