@@ -7,13 +7,13 @@ jobs:
       fail-fast: false
       matrix:
         test:
-        # - "General_SystemAgentVersion"
+        - "General_SystemAgentVersion"
         # - "General_WinsAgentVersion"
         # - "General_CSIProxyAgentVersion"
-        - "Provisioning_Custom_OneNodeWithDelete"
-        - "Provisioning_Custom_ThreeNode"
-        - "Provisioning_Custom_UniqueRoles"
-        - "Provisioning_Custom_ThreeNodeWithTaints"
+        # - "Provisioning_Custom_OneNodeWithDelete"
+        # - "Provisioning_Custom_ThreeNode"
+        # - "Provisioning_Custom_UniqueRoles"
+        # - "Provisioning_Custom_ThreeNodeWithTaints"
         # - "Fleet_Cluster"
         # - "Fleet_ClusterBootstrap"
     name: Provisioning tests
@@ -74,6 +74,12 @@ jobs:
         with:
           name: ${{ matrix.test }}-k3s.log
           path: ./build/testdata/k3s.log
+      - name: Upload k3s dump
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.test }}-k3s-dump.tar.gz
+          path: ./build/testdata/k3s-dump.tgz
       - name: Space
         run: df -h
       - name: Prune

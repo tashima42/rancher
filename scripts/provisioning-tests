@@ -6,6 +6,7 @@ fi
 
 cleanup()
 {
+    cp /tmp/rancher.log build/testdata/rancher.log
     EXIT=$?
     set +ex
     echo Stopping rancher server
@@ -15,7 +16,6 @@ cleanup()
       kill $PID
       wait $PID
     fi
-    cp /tmp/rancher.log build/testdata/rancher.log
 
     return $EXIT
 }
@@ -79,6 +79,10 @@ run_rancher()
             cat build/testdata/k3s.log | gzip | base64 -w 0
             echo -e "\n-----K3S-LOG-DUMP-END-----"
             set +e
+            echo "dumping k3s logs"
+            mkdir -p /tmp/k3s-dump
+            kubectl cluster-info dump --output-directory=/tmp/k3s-dump
+            tar -czf build/testdata/k3s-dump.tgz -C /tmp k3s-dump
             echo Attempting to kill K3s
             pkill -e k3s
             set -e
