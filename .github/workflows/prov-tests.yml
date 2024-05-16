@@ -11,9 +11,9 @@ jobs:
         # - "General_WinsAgentVersion"
         # - "General_CSIProxyAgentVersion"
         - "Provisioning_Custom_OneNodeWithDelete"
-        # - "Provisioning_Custom_ThreeNode"
-        # - "Provisioning_Custom_UniqueRoles"
-        # - "Provisioning_Custom_ThreeNodeWithTaints"
+        - "Provisioning_Custom_ThreeNode"
+        - "Provisioning_Custom_UniqueRoles"
+        - "Provisioning_Custom_ThreeNodeWithTaints"
         # - "Fleet_Cluster"
         # - "Fleet_ClusterBootstrap"
     name: Provisioning tests
