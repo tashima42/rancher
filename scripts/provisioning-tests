@@ -8,7 +8,7 @@ cleanup()
 {
     echo "dumping k3s logs"
     mkdir -p /tmp/k3s-dump
-    kubectl cluster-info dump --output-directory=/tmp/k3s-dump
+    kubectl cluster-info dump -A -o yaml --output-directory=/tmp/k3s-dump
     tar -czf build/testdata/k3s-dump.tgz -C /tmp k3s-dump
     cp /tmp/rancher.log build/testdata/rancher.log
     EXIT=$?
