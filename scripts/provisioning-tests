@@ -56,7 +56,7 @@ export SOME_K8S_VERSION=$(curl -sS https://raw.githubusercontent.com/rancher/kon
 fi
 
 echo "Starting rancher server for provisioning-tests using $SOME_K8S_VERSION"
-touch build/testdata/rancher.log
+# touch build/testdata/rancher.log
 
 mkdir -p /var/lib/rancher/$DIST/agent/images
 grep PodTestImage ./tests/v2prov/defaults/defaults.go | cut -f2 -d'"' > /var/lib/rancher/$DIST/agent/images/pull.txt
