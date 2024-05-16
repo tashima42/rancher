@@ -5,10 +5,14 @@ jobs:
   provisioning_tests:
     strategy:
       matrix:
-        V2PROV_TEST_RUN_REGEX:
-        - "^Test_General_.*$"
-        - "^Test_Provisioning_.*$"
-        - "^Test_Fleet_.*$"
+        test:
+        - "General_"
+        - "Provisioning_Custom_OneNodeWithDelete"
+        - "Provisioning_Custom_ThreeNode"
+        - "Provisioning_Custom_UniqueRoles"
+        - "Provisioning_Custom_ThreeNodeWithTaints"
+        - "Fleet_Cluster"
+        - "Fleet_ClusterBootstrap"
     name: Provisioning tests
     runs-on: ubuntu-latest
     steps:
@@ -27,7 +31,7 @@ jobs:
       - name: Run dapper
         run: dapper provisioning-tests
         env:
-          V2PROV_TEST_RUN_REGEX: ${{ matrix.V2PROV_TEST_RUN_REGEX }}
+          V2PROV_TEST_RUN_REGEX: "^Test_${{ matrix.test }}.*"
       - name: Output size of rancher.log
         if: always()
         run: |
@@ -51,14 +55,14 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rancher.log
+          name: ${{ matrix.test }}-rancher.log
           path: ./bin/logs/rancher.log
   
       - name: Upload k3s log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: k3s.log
+          name: ${{ matrix.test }}-k3s.log
           path: ./bin/logs/k3s.log
       - name: Say goodbye
         run: echo "Tests completed"
