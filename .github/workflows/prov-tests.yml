@@ -24,53 +24,37 @@ jobs:
         run: dapper provisioning-tests
         env:
           V2PROV_TEST_RUN_REGEX: "^Test_General_.*$"
-      - name: Say goodbye
-        run: echo "Tests completed"
-  test_provisioning:
-    name: Provisioning (Provisioning)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Say hello
-        run: echo "Running tests"
-      - name: Install Dapper
+      - name: Output size of rancher.log
+        if: always()
         run: |
-          curl -sL https://releases.rancher.com/dapper/latest/dapper-$(uname -s)-$(uname -m) > /usr/local/bin/dapper
-          chmod +x /usr/local/bin/dapper
-      - name: Dapper version
-        run: dapper --version
-      # - name: Run tests
-      #   run: ./scripts/provisioning-tests
-      - name: Docker version
-        run: docker version
-      - name: Run dapper
-        run: dapper provisioning-tests
-        env:
-          V2PROV_TEST_RUN_REGEX: "^Test_Provisioning_.*$"
-      - name: Say goodbye
-        run: echo "Tests completed"
-  test_fleet:
-    name: Provisioning (Fleet)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Say hello
-        run: echo "Running tests"
-      - name: Install Dapper
+          if [ -f ./bin/logs/rancher.log ]; then
+            echo "Size of rancher.log:"
+            stat --format="%s bytes" ./bin/logs/rancher.log
+          else
+            echo "rancher.log does not exist."
+          fi
+      
+      - name: Output size of k3s.log
+        if: always()
         run: |
-          curl -sL https://releases.rancher.com/dapper/latest/dapper-$(uname -s)-$(uname -m) > /usr/local/bin/dapper
-          chmod +x /usr/local/bin/dapper
-      - name: Dapper version
-        run: dapper --version
-      # - name: Run tests
-      #   run: ./scripts/provisioning-tests
-      - name: Docker version
-        run: docker version
-      - name: Run dapper
-        run: dapper provisioning-tests
-        env:
-          V2PROV_TEST_RUN_REGEX: "^Test_Fleet_.*$"
+          if [ -f ./bin/logs/k3s.log ]; then
+            echo "Size of k3s.log:"
+            stat --format="%s bytes" ./bin/logs/k3s.log
+          else
+            echo "k3s.log does not exist."
+          fi
+      - name: Upload a rancher log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rancher.log
+          path: ./bin/logs/rancher.log
+  
+      - name: Upload k3s log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k3s.log
+          path: ./bin/logs/k3s.log
       - name: Say goodbye
         run: echo "Tests completed"
