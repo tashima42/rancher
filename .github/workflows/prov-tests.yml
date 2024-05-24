@@ -38,7 +38,7 @@ jobs:
     #     # - "Fleet_Cluster"
     #     # - "Fleet_ClusterBootstrap"
     name: Provisioning tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Space
         run: df -h
