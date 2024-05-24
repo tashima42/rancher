@@ -68,6 +68,8 @@ jobs:
         run: dapper provisioning-tests
         env:
           V2PROV_TEST_RUN_REGEX: "^Test_${{ inputs.test }}.*"
+      - name: ls
+        run: ls -al build/testdata
       - name: Output size of rancher.log
         if: always()
         run: |
