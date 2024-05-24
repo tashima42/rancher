@@ -38,7 +38,8 @@ jobs:
     #     # - "Fleet_Cluster"
     #     # - "Fleet_ClusterBootstrap"
     name: Provisioning tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    container: ubuntu:18.04
     steps:
       - name: Space
         run: df -h
@@ -69,6 +70,7 @@ jobs:
         env:
           V2PROV_TEST_RUN_REGEX: "^Test_${{ inputs.test }}.*"
       - name: ls
+        if: always()
         run: ls -al build/testdata
       - name: Output size of rancher.log
         if: always()
@@ -105,7 +107,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.test }}-k3s-dump.tar.gz
+          name: ${{ inputs.test }}-k3s-dump.tgz
           path: ./build/testdata/k3s-dump.tgz
       - name: Space
         run: df -h
