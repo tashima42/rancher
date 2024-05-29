@@ -10,7 +10,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: script
+      - name: Script Part 1
         run: |
-          ./scripts/test
+          ./scripts/test_0
+        shell: bash
+
+      - name: Script Part 2
+        run: |
+          ./scripts/test_1
         shell: bash
