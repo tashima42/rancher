@@ -22,7 +22,7 @@ jobs:
           path: bin/rancher
 
   unit-testing:
-    name: Running test script
+    name: Unit tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -34,7 +34,7 @@ jobs:
         shell: bash
 
   integration-testing:
-    name: Running test script
+    name: Integration tests
     runs-on: ubuntu-latest
     needs:
       - build-server

@@ -10,3 +10,5 @@ fi
 
 # change directory to the parent directory of the script
 cd $(dirname $0)/..
+
+rancher
