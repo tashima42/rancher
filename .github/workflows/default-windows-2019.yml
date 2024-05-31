@@ -3,24 +3,91 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-script:
+  build-server:
+    name: Build rancher server
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Build Server
+        run: |
+          ./scripts/build-server
+        shell: bash
+
+  build-crds:
+    name: Build rancher crds
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Build Server
+        run: |
+          ./scripts/build-crds
+        shell: bash
+
+  build-agent:
+    name: Build rancher agent
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Build Server
+        run: |
+          ./scripts/build-agent
+        shell: bash
+
+  stage-binaries:
+    name: Stage Binaries
+    runs-on: ubuntu-latest
+    needs:
+      - build-agent
+      - build-crds
+      - build-server
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Stage Binaries
+        run: |
+          echo "Hello"
+        shell: bash
+
+  unit-testing:
     name: Running test script
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      #- name: Script Part 1
-        #run: |
-          #./scripts/test_0
-        #shell: bash
-      - name: Change permissions on /var/lib/rancher
+      - name: Unit testing
         run: |
-          sudo mkdir -p /var/lib/rancher
-          sudo chown $USER:$USER /var/lib/rancher
+          ./scripts/unit-test
         shell: bash
 
-      - name: Script Part 2
+  integration-testing:
+    name: Running test script
+    runs-on: ubuntu-latest
+    needs:
+      - stage-binaries
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Integration tests
         run: |
-          ./scripts/test_1
+          ./scripts/integration-test
         shell: bash
+
+      #- name: Change permissions on /var/lib/rancher
+        #run: |
+          #sudo mkdir -p /var/lib/rancher
+          #sudo chown $USER:$USER /var/lib/rancher
+        #shell: bash
+
+      #- name: Script Part 2
+        #run: |
+          #./scripts/test_1
+        #shell: bash
