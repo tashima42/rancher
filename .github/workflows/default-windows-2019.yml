@@ -14,6 +14,11 @@ jobs:
         #run: |
           #./scripts/test_0
         #shell: bash
+      - name: Change permissions on /var/lib/rancher
+        run: |
+          sudo mkdir -p /var/lib/rancher
+          sudo chown $USER:$USER /var/lib/rancher
+        shell: bash
 
       - name: Script Part 2
         run: |
