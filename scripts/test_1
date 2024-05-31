@@ -100,7 +100,8 @@ run_rancher()
         fi
         if [ "$PID" = "-1" ]; then
           echo Starting rancher server using run
-          ./scripts/run >/tmp/rancher.log 2>&1 &  # Start the Rancher server
+          ./scripts/run &  # Start the Rancher server
+          #./scripts/run >/tmp/rancher.log 2>&1 &  # Start the Rancher server
           PID=$!  # Capture the process ID of the Rancher server
         fi
         sleep 2
