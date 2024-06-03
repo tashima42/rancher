@@ -53,7 +53,7 @@ jobs:
 
       - name: Integration tests
         run: |
-          ./bin/rancher
+          ./scripts/integration-test
         shell: bash
 
   #unit-testing:
