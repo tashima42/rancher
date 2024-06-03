@@ -68,6 +68,7 @@ jobs:
         shell: bash
         env:
           ARCH: amd64
+          CI: true
           AGENT_TAG: latest
           CATTLE_SYSTEM_AGENT_VERSION: v0.3.6
 
