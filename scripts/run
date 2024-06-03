@@ -33,9 +33,13 @@ if [ -f /sys/fs/cgroup/cgroup.controllers ]; then
   # move the processes from the root group to the /init group,
   # otherwise writing subtree_control fails with EBUSY.
   sudo mkdir -p /sys/fs/cgroup/init
-  sudo xargs -rn1 < /sys/fs/cgroup/cgroup.procs | sudo tee /sys/fs/cgroup/init/cgroup.procs > /dev/null || :
+  if ! sudo xargs -rn1 < /sys/fs/cgroup/cgroup.procs | sudo tee /sys/fs/cgroup/init/cgroup.procs > /dev/null; then
+    echo "Failed to move processes to /init cgroup, skipping this step."
+  fi
   # enable controllers
-  sudo sed -e 's/ / +/g' -e 's/^/+/' <"/sys/fs/cgroup/cgroup.controllers" | sudo tee "/sys/fs/cgroup/cgroup.subtree_control" > /dev/null
+  if ! sudo sed -e 's/ / +/g' -e 's/^/+/' <"/sys/fs/cgroup/cgroup.controllers" | sudo tee "/sys/fs/cgroup/cgroup.subtree_control" > /dev/null; then
+    echo "Failed to enable controllers, skipping this step."
+  fi
 fi
 
 if [ $CI ]; then
