@@ -3,8 +3,11 @@
 set -e
 
 # Section: Architecture Specific Setup
+# Ensure ARCH is set to avoid unary operator error
+ARCH=${ARCH:-amd64}
+
 # Set ETCD_UNSUPPORTED_ARCH environment variable for unsupported architectures
-if [ ${ARCH} == arm64 ] || [ ${ARCH} == s390x ]; then
+if [ "${ARCH}" == "arm64" ] || [ "${ARCH}" == "s390x" ]; then
     export ETCD_UNSUPPORTED_ARCH=${ARCH}
 fi
 
@@ -49,8 +52,8 @@ touch /tmp/rancher.log  # Create log file
 
 # Prepare directories and files for Rancher server setup
 sudo mkdir -p /var/lib/rancher/$DIST/agent/images
-sudo grep PodTestImage ./tests/v2prov/defaults/defaults.go | cut -f2 -d'"' > /var/lib/rancher/$DIST/agent/images/pull.txt
-sudo grep MachineProvisionImage ./pkg/settings/setting.go | cut -f4 -d'"' >> /var/lib/rancher/$DIST/agent/images/pull.txt
+sudo grep PodTestImage ./tests/v2prov/defaults/defaults.go | cut -f2 -d'"' | sudo tee /var/lib/rancher/$DIST/agent/images/pull.txt > /dev/null
+sudo grep MachineProvisionImage ./pkg/settings/setting.go | cut -f4 -d'"' | sudo tee -a /var/lib/rancher/$DIST/agent/images/pull.txt > /dev/null
 sudo mkdir -p /usr/share/rancher/ui/assets
 sudo curl -sLf https://github.com/rancher/system-agent/releases/download/${CATTLE_SYSTEM_AGENT_VERSION}/rancher-system-agent-amd64 -o /usr/share/rancher/ui/assets/rancher-system-agent-amd64
 sudo curl -sLf https://github.com/rancher/system-agent/releases/download/${CATTLE_SYSTEM_AGENT_VERSION}/rancher-system-agent-arm64 -o /usr/share/rancher/ui/assets/rancher-system-agent-arm64
