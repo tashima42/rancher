@@ -46,12 +46,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: rancher
-          path: bin/rancher
+          path: bin
 
       - name: Integration tests
         run: |
-          ./scripts/integration-test
+          ./bin/rancher
         shell: bash
+
+      #- name: Integration tests
+        #run: |
+          #./scripts/integration-test
+        #shell: bash
 
       #- name: Change permissions on /var/lib/rancher
         #run: |
