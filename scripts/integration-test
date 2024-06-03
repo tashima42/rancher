@@ -2,6 +2,10 @@
 # Set bash script to exit immediately if any command fails
 set -e
 
+# Change directory to the parent directory of the script
+cd $(dirname $0)/..
+
+
 # Function: cleanup
 # This function is called upon script exit to stop the Rancher server and clean up processes.
 cleanup()
@@ -124,8 +128,8 @@ dump_rancher_logs()
 }
 
 # Uncomment the following lines to get startup logs (not recommended for regular runs)
-#tail -F /tmp/rancher.log &
-#TPID=$!
+tail -F /tmp/rancher.log &
+TPID=$!
 
 # Set trap to exit script on signal 42
 trap "exit 1" 42
