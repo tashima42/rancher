@@ -25,7 +25,7 @@ cleanup()
     return $EXIT  # Return the captured exit status
 }
 
-# Section: Architecture Specific Setup
+# Set ETCD_UNSUPPORTED_ARCH environment variable for unsupported architectures
 if [ "${ARCH}" == "arm64" ] || [ "${ARCH}" == "s390x" ]; then
     export ETCD_UNSUPPORTED_ARCH=${ARCH}
 fi
@@ -33,6 +33,7 @@ fi
 TB_ORG=rancher  # Set default organization
 
 # Section: Test Distribution Configuration
+# Determine the test distribution and configure related environment variables
 if [ -z "${TEST_DIST}" ] || [ "${TEST_DIST}" = "k3s" ]; then
   TEST_DIST=k3s
   AIRGAP=-airgap
@@ -41,13 +42,14 @@ else
   LINUX=.linux
 fi
 
-export DIST=${TEST_DIST}
-export SOME_K8S_VERSION=${SOME_K8S_VERSION}
-export TB_ORG=${TB_ORG}
+export DIST=${TEST_DIST}  # Set distribution environment variable
+export SOME_K8S_VERSION=${SOME_K8S_VERSION}  # Set Kubernetes version environment variable
+export TB_ORG=${TB_ORG}  # Set organization environment variable
 
 # Section: Rancher Agent Image
+# Configure Rancher to use the recently-built Rancher cluster agent image
 source ./scripts/version  # Source the version script
-export CATTLE_AGENT_IMAGE="rancher/rancher-agent:${AGENT_TAG}"
+export CATTLE_AGENT_IMAGE="rancher/rancher-agent:${AGENT_TAG}"  # Set the Rancher agent image
 echo "Using Rancher agent image $CATTLE_AGENT_IMAGE"
 
 # Extract and export environment variables from the Dockerfile
@@ -57,13 +59,15 @@ eval "$(grep '^ENV CATTLE_CSI_PROXY_AGENT' package/Dockerfile | awk '{print "exp
 eval "$(grep '^ENV CATTLE_KDM_BRANCH' package/Dockerfile | awk '{print "export " $2 "=" $3}')"
 
 # Section: Kubernetes Version Configuration
+# Fetch the latest Kubernetes version for the specified distribution if not already set
 if [ -z "${SOME_K8S_VERSION}" ]; then
   export SOME_K8S_VERSION=$(curl -sS https://raw.githubusercontent.com/rancher/kontainer-driver-metadata/dev-v2.8/data/data.json | jq -r ".$DIST.releases[-1].version")
 fi
 
 # Section: Rancher Server Setup
-echo "Starting rancher server for test"
-touch /tmp/rancher.log
+# Start the Rancher server and configure necessary files and directories
+echo Starting rancher server for test
+touch /tmp/rancher.log  # Create log file
 
 # Prepare directories and files for Rancher server setup
 sudo mkdir -p /var/lib/rancher/$DIST/agent/images
@@ -75,13 +79,15 @@ sudo curl -sLf https://github.com/rancher/system-agent/releases/download/${CATTL
 sudo curl -sLf https://github.com/rancher/system-agent/releases/download/${CATTLE_SYSTEM_AGENT_VERSION}/system-agent-uninstall.sh -o /usr/share/rancher/ui/assets/system-agent-uninstall.sh
 
 # Function: run_rancher
-run_rancher() {
-    RESTART_COUNT=0
+# This function starts the Rancher server and handles its restart logic.
+run_rancher()
+{
+    RESTART_COUNT=0  # Initialize restart count
     while sleep 2; do
         if [ "$PID" != "-1" ] && ! ps -p $PID > /dev/null; then
-            echo "Rancher died"
-            dump_rancher_logs
-            echo "K3s logs were:"
+            echo Rancher died
+            dump_rancher_logs  # Call function to dump Rancher logs
+            echo K3s logs were:
             echo -e "-----K3S-LOG-DUMP-START-----"
             if [ -f build/testdata/k3s.log ]; then
                 cat build/testdata/k3s.log | gzip | base64 -w 0
@@ -90,88 +96,98 @@ run_rancher() {
             fi
             echo -e "\n-----K3S-LOG-DUMP-END-----"
             set +e
-            echo "Attempting to kill K3s"
-            sudo pkill -e k3s
+            echo Attempting to kill K3s
+            sudo pkill -e k3s  # Kill the k3s process with sudo
             set -e
             PID=-1
             if [ "$RESTART_COUNT" = "2" ]; then
-                echo "Rancher died 3 times, aborting"
-                kill -42 $PWRAPPROC
+                echo Rancher died 3 times, aborting
+                kill -42 $PWRAPPROC  # Abort the process after 3 retries
             fi
-            RESTART_COUNT=$((RESTART_COUNT + 1))
+            RESTART_COUNT=$((RESTART_COUNT + 1))  # Increment restart count
             sleep 5
         fi
         if [ "$PID" = "-1" ]; then
-          echo "Starting rancher server using run"
-          sudo ./scripts/run >/tmp/rancher.log 2>&1 &
-          PID=$!
+          echo Starting rancher server using run
+          ./scripts/run >/tmp/rancher.log 2>&1 &  # Start the Rancher server
+          PID=$!  # Capture the process ID of the Rancher server
         fi
         sleep 2
     done
 }
 
 # Function: dump_rancher_logs
-dump_rancher_logs() {
-  echo "Rancher logs were"
+# This function dumps the Rancher server logs for debugging purposes.
+dump_rancher_logs()
+{
+  echo Rancher logs were
   echo -e "-----RANCHER-LOG-DUMP-START-----"
   cat /tmp/rancher.log | gzip | base64 -w 0
   echo -e "\n-----RANCHER-LOG-DUMP-END-----"
 }
 
-# uncomment to get startup logs. Don't leave them on because it slows drone down too
-# much
+# Uncomment the following lines to get startup logs (not recommended for regular runs)
 tail -F /tmp/rancher.log &
 TPID=$!
 
-# Main script execution
+# Set trap to exit script on signal 42
 trap "exit 1" 42
-PWRAPPROC="$$"
+PWRAPPROC="$$"  # Store the current process ID
 
-PID=-1
-run_rancher &
-RANCHER_RUN_PID=$!
-trap cleanup exit
+PID=-1  # Initialize PID variable
+run_rancher &  # Call the run_rancher function in the background
+RANCHER_RUN_PID=$!  # Capture the process ID of the run_rancher function
+trap cleanup exit  # Set trap to call cleanup function on script exit
 
 # Section: Health Checks
+# Wait for Rancher server to be healthy
 echo "Waiting for Rancher to be healthy"
 ./scripts/retry --sleep 2 "curl -sf -o /dev/null http://localhost:8080/ping"
 
+# Wait for rancher-webhook deployment to be available
 echo "Waiting up to 5 minutes for rancher-webhook deployment"
 ./scripts/retry \
-  --timeout 300 \
-  --sleep 2 \
-  --message-interval 30 \
-  --message "rancher-webhook was not available after {{elapsed}} seconds" \
+  --timeout 300 `# Time out after 300 seconds (5 min)` \
+  --sleep 2 `# Sleep for 2 seconds in between attempts` \
+  --message-interval 30 `# Print the progress message below every 30 attempts (roughly every minute)` \
+  --message "rancher-webhook was not available after {{elapsed}} seconds" `# Print this progress message` \
   "kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml rollout status -w -n cattle-system deploy/rancher-webhook &>/dev/null"
 
+# Wait for rancher-provisioning-capi deployment to be available
 echo "Waiting up to 5 minutes for rancher-provisioning-capi deployment"
 ./scripts/retry \
-  --timeout 300 \
-  --sleep 2 \
-  --message-interval 30 \
-  --message "rancher-provisioning-capi was not available after {{elapsed}} seconds" \
+  --timeout 300 `# Time out after 300 seconds (5 min)` \
+  --sleep 2 `# Sleep for 2 seconds in between attempts` \
+  --message-interval 30 `# Print the progress message below every 30 attempts (roughly every minute)` \
+  --message "rancher-provisioning-capi was not available after {{elapsed}} seconds" `# Print this progress message` \
   "kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml rollout status -w -n cattle-provisioning-capi-system deploy/capi-controller-manager &>/dev/null"
 
+#kill $TPID  # Uncomment to kill the tail process
+
 # Section: Integration Tests
-echo "Running build-integration-setup"
+# Run the build integration setup script
+echo Running build-integration-setup
 ./tests/v2/integration/scripts/build-integration-setup
 
-echo "Running integrationsetup"
-export CATTLE_TEST_CONFIG=$(pwd)/config.yaml
+# Run the integration setup script and export the test config
+echo Running integrationsetup
+export CATTLE_TEST_CONFIG=$(pwd)/config.yaml  # Set the test configuration file
 ./tests/v2/integration/bin/integrationsetup || {
-  dump_rancher_logs
+  dump_rancher_logs  # Dump logs if integration setup fails
   exit 1
 }
 
-echo "Running go integration tests"
+# Run the Go integration tests
+echo Running go integration tests
 go test -v -failfast -p 1 ./tests/v2/integration/... || {
-  dump_rancher_logs
+  dump_rancher_logs  # Dump logs if integration tests fail
   exit 1
 }
 
-echo "Running tox tests"
-INT_TESTS_STARTED=true
+# Run the tox tests
+echo Running tox tests
+INT_TESTS_STARTED=true  # Set flag indicating that integration tests have started
 cd ./tests/integration
-tox -e rancher -- -m "not nonparallel" -n $(nproc)
-tox -e rancher -- -m nonparallel
-tail -f /tmp/rancher-test.log &
+tox -e rancher -- -m "not nonparallel" -n $(nproc)  # Run tox tests in parallel
+tox -e rancher -- -m nonparallel  # Run tox tests non-parallel
+tail -f /tmp/rancher-test.log &  # Tail the Rancher test log file
