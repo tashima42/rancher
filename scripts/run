@@ -33,14 +33,14 @@ if [ -f /sys/fs/cgroup/cgroup.controllers ]; then
   # move the processes from the root group to the /init group,
   # otherwise writing subtree_control fails with EBUSY.
   sudo mkdir -p /sys/fs/cgroup/init
-  sudo xargs -rn1 < /sys/fs/cgroup/cgroup.procs > /sys/fs/cgroup/init/cgroup.procs || :
+  sudo xargs -rn1 < /sys/fs/cgroup/cgroup.procs | sudo tee /sys/fs/cgroup/init/cgroup.procs > /dev/null || :
   # enable controllers
-  sudo sed -e 's/ / +/g' -e 's/^/+/' <"/sys/fs/cgroup/cgroup.controllers" >"/sys/fs/cgroup/cgroup.subtree_control"
+  sudo sed -e 's/ / +/g' -e 's/^/+/' <"/sys/fs/cgroup/cgroup.controllers" | sudo tee "/sys/fs/cgroup/cgroup.subtree_control" > /dev/null
 fi
 
 if [ $CI ]; then
   # DISCLAIMER
-  # This code relies on the fact that our CI pipleine runs on one system at a time. Currently with drone this means that the setting `DRONE_AGENT_CONCURRENCY=1`
+  # This code relies on the fact that our CI pipeline runs on one system at a time. Currently with drone this means that the setting `DRONE_AGENT_CONCURRENCY=1`
 
   # Attempt to find and stop any previous instances of dapper containers.
   # To combat the scenario where drone runners are reused and an instance of rancher is still running.
