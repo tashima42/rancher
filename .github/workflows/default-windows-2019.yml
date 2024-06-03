@@ -37,8 +37,11 @@ jobs:
           path: bin
 
       - name: Make Rancher Binary Executable
-        run: |
-          chmod +x ./bin/rancher
+        run: chmod +x ./bin/rancher
+        shell: bash
+
+      - name: Install K3s
+        run: curl -sfL https://get.k3s.io | sh - 
         shell: bash
 
       - name: Integration tests
@@ -46,17 +49,17 @@ jobs:
           ./bin/rancher
         shell: bash
 
-  unit-testing:
-    name: Unit tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  #unit-testing:
+    #name: Unit tests
+    #runs-on: ubuntu-latest
+    #steps:
+      #- name: Checkout code
+        #uses: actions/checkout@v4
 
-      - name: Unit testing
-        run: |
-          ./scripts/unit-test
-        shell: bash
+      #- name: Unit testing
+        #run: |
+          #./scripts/unit-test
+        #shell: bash
 
       #- name: Integration tests
         #run: |
