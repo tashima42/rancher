@@ -118,6 +118,11 @@ dump_rancher_logs() {
   echo -e "\n-----RANCHER-LOG-DUMP-END-----"
 }
 
+# uncomment to get startup logs. Don't leave them on because it slows drone down too
+# much
+tail -F /tmp/rancher.log &
+TPID=$!
+
 # Main script execution
 trap "exit 1" 42
 PWRAPPROC="$$"
