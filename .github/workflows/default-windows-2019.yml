@@ -44,6 +44,12 @@ jobs:
         run: curl -sfL https://get.k3s.io | sh - 
         shell: bash
 
+      - name: Start k3s
+        run: |
+          sudo systemctl start k3s
+          sudo systemctl status k3s
+        shell: bash
+
       - name: Integration tests
         run: |
           ./bin/rancher
