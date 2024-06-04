@@ -2,6 +2,9 @@ name: Running Test Script
 on:
   workflow_dispatch:
 
+env:
+  K3S_VERSION: v1.30.1+k3s1
+
 jobs:
   build-server:
     name: Build rancher server
@@ -49,6 +52,19 @@ jobs:
 
       - name: Make Rancher Binary Executable
         run: chmod +x ./bin/rancher
+        shell: bash
+
+      - name: Download k3s Binary
+        run: |
+          curl -L https://github.com/k3s-io/k3s/releases/download/${K3S_VERSION}/k3s -o /usr/local/bin/k3s
+        shell: bash
+
+      - name: Make k3s Executable
+        run: chmod +x /usr/local/bin/k3s
+        shell: bash
+
+      - name: Verify k3s Installation
+        run: k3s --version
         shell: bash
 
       #- name: Install K3s
