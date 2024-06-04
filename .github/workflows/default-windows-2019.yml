@@ -64,7 +64,7 @@ jobs:
 
       - name: Integration tests
         run: |
-          ./scripts/integration-test
+          sudo ./scripts/integration-test
         shell: bash
         env:
           ARCH: amd64
