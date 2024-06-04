@@ -55,6 +55,8 @@ jobs:
         run: curl -sfL https://get.k3s.io | sh - 
         shell: bash
 
+      - run: sudo lsof -i :6443
+
       #- name: Start k3s
         #run: |
           #sudo systemctl start k3s
