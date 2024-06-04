@@ -58,8 +58,8 @@ jobs:
       - name: Stop k3s
         run: |
           sudo systemctl stop k3s
-          sudo systemctl status k3s
-          sudo journalctl -u k3s
+          #sudo systemctl status k3s
+          #sudo journalctl -u k3s
         shell: bash
 
       - name: Integration tests
