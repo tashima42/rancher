@@ -55,14 +55,12 @@ jobs:
         run: curl -sfL https://get.k3s.io | sh - 
         shell: bash
 
-      - run: sudo lsof -i :6443
-
-      #- name: Start k3s
-        #run: |
-          #sudo systemctl start k3s
-          #sudo systemctl status k3s
-          #sudo journalctl -u k3s
-        #shell: bash
+      - name: Stop k3s
+        run: |
+          sudo systemctl stop k3s
+          sudo systemctl status k3s
+          sudo journalctl -u k3s
+        shell: bash
 
       - name: Integration tests
         run: |
