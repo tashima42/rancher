@@ -78,8 +78,6 @@ sudo curl -sLf https://github.com/rancher/system-agent/releases/download/${CATTL
 run_rancher() {
     RESTART_COUNT=0
     while sleep 2; do
-      systemctl restart k3s
-        sleep 10
         if [ "$PID" != "-1" ] && ! ps -p $PID > /dev/null; then
             echo "Rancher died"
             dump_rancher_logs
@@ -109,7 +107,6 @@ run_rancher() {
           PID=$!
         fi
         sleep 2
-      systemctl stop k3s
     done
 }
 
