@@ -61,10 +61,11 @@ jobs:
           sudo mv k3s /usr/local/bin/
         shell: bash
 
-      - name: Stop k3s Service
+      - name: Stop Existing k3s Service
         run: |
           sudo systemctl stop k3s || true
           sudo rm -rf /etc/rancher/k3s /var/lib/rancher/k3s
+          sudo pkill -f k3s || true
         shell: bash
 
       - name: Verify k3s Installation and Start k3s
