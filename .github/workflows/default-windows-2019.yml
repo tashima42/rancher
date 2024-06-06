@@ -67,7 +67,10 @@ jobs:
         shell: bash
 
       - name: Verify k3s Installation
-        run: k3s --version
+        run: | 
+          k3s --version
+          sudo k3s server --https-listen-port 6444
+          sudo systemctl status k3s
         shell: bash
 
 
