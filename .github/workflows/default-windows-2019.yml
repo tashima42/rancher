@@ -59,23 +59,23 @@ jobs:
           curl -L https://github.com/k3s-io/k3s/releases/download/${K3S_VERSION}/k3s -o /usr/local/bin/k3s
         shell: bash
 
-      - name: Make k3s Executable
-        run: chmod +x /usr/local/bin/k3s
+      #- name: Make k3s Executable
+        #run: chmod +x /usr/local/bin/k3s
+        #shell: bash
+      - name: Install K3s
+        run: curl -sfL https://get.k3s.io | sh - 
         shell: bash
 
       - name: Verify k3s Installation
         run: k3s --version
         shell: bash
 
-      #- name: Install K3s
-        #run: curl -sfL https://get.k3s.io | sh - 
-        #shell: bash
 
-      #- name: Stop k3s
+      #- name: Start k3s
         #run: |
           #sudo systemctl stop k3s
-          ##sudo systemctl status k3s
-          ##sudo journalctl -u k3s
+          #sudo systemctl status k3s
+          #sudo journalctl -u k3s
         #shell: bash
 
       - name: Integration tests
