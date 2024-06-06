@@ -54,32 +54,21 @@ jobs:
         run: chmod +x ./bin/rancher
         shell: bash
 
-      - name: Download k3s Binary
-        run: |
-          curl -L https://github.com/k3s-io/k3s/releases/download/${K3S_VERSION}/k3s -o /usr/local/bin/k3s
-        shell: bash
-
-      #- name: Make k3s Executable
-        #run: chmod +x /usr/local/bin/k3s
-        #shell: bash
       - name: Install K3s
         run: curl -sfL https://get.k3s.io | sh - 
         shell: bash
 
-      - name: Verify k3s Installation
-        run: | 
-          k3s --version
-          sudo k3s server --https-listen-port 6444
-          sudo systemctl status k3s
+      - name: Stop k3s Service
+        run: sudo systemctl stop k3s
         shell: bash
 
-
-      #- name: Start k3s
-        #run: |
-          #sudo systemctl stop k3s
-          #sudo systemctl status k3s
-          #sudo journalctl -u k3s
-        #shell: bash
+      - name: Verify k3s Installation and Start k3s
+        run: |
+          k3s --version
+          sudo k3s server --https-listen-port 6444 &
+          sleep 30
+          sudo k3s kubectl get nodes
+        shell: bash
 
       - name: Integration tests
         run: |
@@ -90,31 +79,3 @@ jobs:
           CI: true
           AGENT_TAG: latest
           CATTLE_SYSTEM_AGENT_VERSION: v0.3.6
-
-  #unit-testing:
-    #name: Unit tests
-    #runs-on: ubuntu-latest
-    #steps:
-      #- name: Checkout code
-        #uses: actions/checkout@v4
-
-      #- name: Unit testing
-        #run: |
-          #./scripts/unit-test
-        #shell: bash
-
-      #- name: Integration tests
-        #run: |
-          #./scripts/integration-test
-        #shell: bash
-
-      #- name: Change permissions on /var/lib/rancher
-        #run: |
-          #sudo mkdir -p /var/lib/rancher
-          #sudo chown $USER:$USER /var/lib/rancher
-        #shell: bash
-
-      #- name: Script Part 2
-        #run: |
-          #./scripts/test_1
-        #shell: bash
