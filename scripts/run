@@ -1,11 +1,6 @@
 #!/bin/bash
 set -e
 
-echo Starting K3s server
-systemctl start k3s
-sleep 10
-echo K3s server started
-
 echo Starting rancher server
 cd $(dirname $0)/..
 
@@ -70,7 +65,3 @@ if [ $CI ]; then
 fi
 
 exec ../../$CMD $LOGFLAG
-
-echo Stopping K3s server
-systemctl stop k3s
-echo K3s server stopped
