@@ -50,6 +50,7 @@ jobs:
           name: rancher
           path: bin
           run-id: 9455433613
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Make Rancher Binary Executable
         run: chmod +x ./bin/rancher
