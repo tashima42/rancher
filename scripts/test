@@ -2,6 +2,8 @@
 # Set bash script to exit immediately if any command fails
 set -e
 
+cd $(dirname $0)/..
+./scripts/build-server
 # Function: cleanup
 # This function is called upon script exit to stop the Rancher server and clean up processes.
 cleanup()
@@ -25,7 +27,6 @@ if [ ${ARCH} == s390x ]; then
 fi
 
 # Change directory to the parent directory of the script
-cd $(dirname $0)/..
 
 ## Section: Unit Tests
 ## Run Go unit tests with coverage and specific tags

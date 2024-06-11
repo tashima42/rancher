@@ -6,7 +6,8 @@ cd $(dirname $0)/..
 
 CMD=bin/rancher
 if [ ! -x $CMD ]; then
-    ./scripts/build-server
+  echo "missing rancher bin"
+  exit 1
 fi
 
 if [ ! -z $1 ] && ( [ $1 = "--trace" ] || [ $1 = "--info" ] || [ $1 = "--debug" ] ); then
