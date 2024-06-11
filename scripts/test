@@ -3,7 +3,6 @@
 set -e
 
 cd $(dirname $0)/..
-./scripts/build-server
 # Function: cleanup
 # This function is called upon script exit to stop the Rancher server and clean up processes.
 cleanup()
