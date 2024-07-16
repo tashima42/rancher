@@ -109,6 +109,8 @@ jobs:
         image: registry:2
         ports:
           - 5000:5000
+    env:
+      REGISTRY: "127.0.0.1:5000"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -139,6 +141,7 @@ jobs:
         with:
           name: "rancher-${{ matrix.os }}-${{ matrix.arch }}"
           path: /tmp
+          run-id: 
       - name: Load image
         run: |
           image_id=$(docker load --input /tmp/rancher-${{ matrix.os }}-${{ matrix.arch }}.tar 2>&1 | grep "Loaded image" | awk '{print $NF}')
@@ -146,13 +149,13 @@ jobs:
             echo "Error: Failed to load image from tarball!"
             exit 1
           fi
-          docker tag "$image_id" localhost:5000/${{ env.IMAGE }}:${{ env.TAG }}
-          docker push localhost:5000/${{ env.IMAGE }}:${{ env.TAG }}
+          docker tag "$image_id" ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.TAG }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.TAG }}
       - name: Build agent
         id: build
         uses: docker/build-push-action@v5
         with:
-          push:  ${{ github.event_name != 'pull_request' }}
+          push: false
           build-args: |
             "VERSION=${{ env.TAG }}"
             "ARCH=${{ matrix.arch }}"
