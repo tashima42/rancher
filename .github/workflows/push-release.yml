@@ -149,20 +149,17 @@ jobs:
           - 5000:5000
     env:
       REGISTRY: "127.0.0.1:5000"
-    permissions:
-      contents: read
-      id-token: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Setup Environment Variables
-        uses: ./.github/actions/setup-tag-env
       - name: Clean runner
         run: |
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Environment Variables
+        uses: ./.github/actions/setup-tag-env
       - name: Download rancher image
         uses: actions/download-artifact@v4
         with:
@@ -231,17 +228,19 @@ jobs:
     env:
       REGISTRY: "127.0.0.1:5000"
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
       - name: Clean runner
         run: |
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+      - name: Checkout code
+        uses: actions/checkout@v4
       - name: Setup Environment Variables
         run: |
           echo "ARCH=${{ matrix.arch }}" >> "$GITHUB_ENV"
+      - name: Setup TAG Variables
+        uses: ./.github/actions/setup-tag-env
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -281,7 +280,7 @@ jobs:
             "ARCH=${{ matrix.arch }}"
             "RANCHER_TAG=${{ env.TAG }}"
             "RANCHER_REPO=${{ env.REPOSITORY_OWNER }}"
-            "REGISTRY=localhost:5000"
+            "REGISTRY=${{ env.REGISTRY }}"
           tags: ${{ env.IMAGE_AGENT }}:${{ env.TAG }}-${{ matrix.arch }}
           context: .
           platforms: "${{ matrix.os }}/${{ matrix.arch }}"
