@@ -168,6 +168,7 @@ jobs:
           name: "rancher-${{ matrix.os }}-${{ matrix.arch }}"
           path: /tmp
           run-id: 9960044387
+          github-token: ${{ github.token }}
       - name: Load image
         run: |
           image_id=$(docker load --input /tmp/rancher-${{ matrix.os }}-${{ matrix.arch }}.tar 2>&1 | grep "Loaded image" | awk '{print $NF}')
