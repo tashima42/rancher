@@ -266,7 +266,7 @@ jobs:
       - name: Download rancher image
         uses: actions/download-artifact@v4
         with:
-          pattern: "*-${{ matrix.os }}-${{ matrix.arch }}.tar"
+          pattern: "*-${{ matrix.os }}-${{ matrix.arch }}"
           path: /tmp
           merge-multiple: true
           github-token: ${{ github.token }}
