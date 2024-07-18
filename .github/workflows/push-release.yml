@@ -56,6 +56,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    needs: [build-chart]
     steps:
       - name: Install gcloud CLI
         run: |
