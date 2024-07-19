@@ -50,6 +50,10 @@ jobs:
           if-no-files-found: error
           retention-days: 1
           overwrite: true
+      - name: gcloud auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 
   publish-chart:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && contains(github.ref, 'tags/') # Only run on push
@@ -501,7 +505,8 @@ jobs:
           mkdir -p $HOME/bin
           touch $HOME/bin/rancher-rke-k8s-versions.txt
       - name: Create components and images files
-        run: sudo -E ./scripts/create-components-images-files.sh
+        shell: bash
+        run: sudo --preserve-env ./scripts/create-components-images-files.sh
       - name: Move files
         run: |
           mv $HOME/bin/* ./dist
