@@ -59,12 +59,7 @@ type ImageTargetsAndSources struct {
 // GatherTargetImagesAndSources queries KDM, charts and system-charts to gather all the images used by Rancher and their source.
 // It returns an aggregate type, ImageTargetsAndSources, which contains the images required to run Rancher on Linux and Windows, as well
 // as the source of each image.
-func GatherTargetImagesAndSources(systemChartsPath, chartsPath string, imagesFromArgs []string) (ImageTargetsAndSources, error) {
-	rancherVersion, ok := os.LookupEnv("TAG")
-	if !ok {
-		return ImageTargetsAndSources{}, fmt.Errorf("no tag defining current Rancher version, cannot gather target images and sources")
-	}
-
+func GatherTargetImagesAndSources(systemChartsPath, chartsPath string, imagesFromArgs []string, rancherVersion, binDir string) (ImageTargetsAndSources, error) {
 	if !img.IsValidSemver(rancherVersion) || !settings.IsReleaseServerVersion(rancherVersion) {
 		rancherVersion = settings.RancherVersionDev
 	}
@@ -73,7 +68,7 @@ func GatherTargetImagesAndSources(systemChartsPath, chartsPath string, imagesFro
 	// already downloaded in dapper
 	b, err := os.ReadFile(filepath.Join("data.json"))
 	if os.IsNotExist(err) {
-		b, err = os.ReadFile(filepath.Join(os.Getenv("HOME"), "bin", "data.json"))
+		b, err = os.ReadFile(filepath.Join(binDir, "data.json"))
 	}
 	if err != nil {
 		return ImageTargetsAndSources{}, fmt.Errorf("could not read data.json: %w", err)
@@ -96,7 +91,7 @@ func GatherTargetImagesAndSources(systemChartsPath, chartsPath string, imagesFro
 		k8sVersions = append(k8sVersions, k)
 	}
 	sort.Strings(k8sVersions)
-	if err := writeSliceToFile(filepath.Join(os.Getenv("HOME"), "bin", "rancher-rke-k8s-versions.txt"), k8sVersions); err != nil {
+	if err := writeSliceToFile(filepath.Join(binDir, "rancher-rke-k8s-versions.txt"), k8sVersions); err != nil {
 		return ImageTargetsAndSources{}, fmt.Errorf("%s: %w", "could not write rancher-rke-k8s-versions.txt file", err)
 	}
 
@@ -163,6 +158,18 @@ func GatherTargetImagesAndSources(systemChartsPath, chartsPath string, imagesFro
 	}, nil
 }
 
+func RancherVersionFromEnv() (string, error) {
+	tagEnv, ok := os.LookupEnv("TAG")
+	if !ok {
+		return "", errors.New("no tag defining current Rancher version, cannot gather target images and sources")
+	}
+	return tagEnv, nil
+}
+
+func HomeBinDir() string {
+	return filepath.Join(os.Getenv("HOME"), "bin")
+}
+
 // LoadScript produces executable files for Linux and Windows
 // which will load all images used by Rancher into a given image repository.
 func LoadScript(arch string, targetImages []string) error {
@@ -175,7 +182,7 @@ func LoadScript(arch string, targetImages []string) error {
 	defer load.Close()
 	load.Chmod(0755)
 
-	fmt.Fprintf(load, getScript(arch, "load"))
+	fmt.Fprint(load, getScript(arch, "load"))
 	return nil
 }
 
@@ -192,15 +199,15 @@ func SaveScript(arch string, targetImages []string) error {
 	defer save.Close()
 	save.Chmod(0755)
 
-	fmt.Fprintf(save, getScript(arch, "save"))
+	fmt.Fprint(save, getScript(arch, "save"))
 
 	return nil
 }
 
 // ImagesText will produce a file containing all the images
 // used by Rancher for a particular arch.
-func ImagesText(arch string, targetImages []string) error {
-	filename := filenameMap[arch]
+func ImagesText(imagesOS string, targetImages []string) error {
+	filename := filenameMap[imagesOS]
 	log.Printf("Creating %s\n", filename)
 	save, err := os.Create(filename)
 	if err != nil {
@@ -209,7 +216,12 @@ func ImagesText(arch string, targetImages []string) error {
 	defer save.Close()
 	save.Chmod(0755)
 
-	for _, image := range saveImages(targetImages) {
+	images, err := RancherImages(imagesOS, targetImages)
+	if err != nil {
+		return err
+	}
+
+	for _, image := range images {
 		err := checkImage(image)
 		if err != nil {
 			return err
@@ -218,6 +230,18 @@ func ImagesText(arch string, targetImages []string) error {
 	}
 
 	return nil
+}
+
+func RancherImages(os string, targetImages []string) ([]string, error) {
+	images := []string{}
+	for _, image := range saveImages(targetImages) {
+		err := checkImage(image)
+		if err != nil {
+			return nil, err
+		}
+		images = append(images, image)
+	}
+	return images, nil
 }
 
 // ImagesAndSourcesText writes data of the format "image source1,..." to the filename
@@ -255,16 +279,14 @@ func MirrorScript(arch string, targetImages []string) error {
 	mirror.Chmod(0755)
 
 	scriptStarter := getScript(arch, "mirror")
-	fmt.Fprintf(mirror, scriptStarter)
+	fmt.Fprint(mirror, scriptStarter)
 
-	var saveImages []string
 	for _, targetImage := range targetImages {
 		srcImage, ok := image.Mirrors[targetImage]
 		if !ok {
 			continue
 		}
 
-		saveImages = append(saveImages, targetImage)
 		fmt.Fprintf(mirror, "docker pull %s\n", srcImage)
 		if targetImage != srcImage {
 			fmt.Fprintf(mirror, "docker tag %s %s\n", srcImage, targetImage)
@@ -309,16 +331,16 @@ func checkImage(image string) error {
 	}
 	imageNameTag := strings.Split(image, ":")
 	if len(imageNameTag) != 2 {
-		return fmt.Errorf("Can't extract tag from image [%s]", image)
+		return fmt.Errorf("can't extract tag from image [%s]", image)
 	}
 	if imageNameTag[1] == "" {
-		return fmt.Errorf("Extracted tag from image [%s] is empty", image)
+		return fmt.Errorf("extracted tag from image [%s] is empty", image)
 	}
 	if !strings.HasPrefix(imageNameTag[0], "rancher/") {
-		return fmt.Errorf("Image [%s] does not start with rancher/", image)
+		return fmt.Errorf("image [%s] does not start with rancher/", image)
 	}
 	if strings.HasSuffix(imageNameTag[0], "-") {
-		return fmt.Errorf("Image [%s] has trailing '-', probably an error in image substitution", image)
+		return fmt.Errorf("image [%s] has trailing '-', probably an error in image substitution", image)
 	}
 	return nil
 }

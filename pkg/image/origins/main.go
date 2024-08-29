@@ -29,7 +29,12 @@ func main() {
 const imageNotFound = "image not found"
 
 func inner(systemChartsPath, chartsPath string, imagesFromArgs []string) error {
-	targetsAndSources, err := utilities.GatherTargetImagesAndSources(systemChartsPath, chartsPath, imagesFromArgs)
+	rancherVersion, err := utilities.RancherVersionFromEnv()
+	if err != nil {
+		return err
+	}
+	homeBin := utilities.HomeBinDir()
+	targetsAndSources, err := utilities.GatherTargetImagesAndSources(systemChartsPath, chartsPath, imagesFromArgs, rancherVersion, homeBin)
 	if err != nil {
 		return err
 	}
