@@ -1,0 +1,51 @@
+name: conditional-steps-poc
+on: 
+  push:
+    branches:
+      - "poc-conditional-steps"
+    tags:
+      - "v*"
+jobs:
+  all:
+    runs-on: ubuntu-latest
+    steps:
+      - name: All
+        shell: bash
+        run: echo "hello, this should run on all runs"
+      - name: Only Hotfix
+        # Only use if it is a hotfix or security release
+        if: contains(github.ref_name, '-hotfix')
+        shell: bash
+        run: echo "hello, this should run only on hotfix"
+      - name: Hotfix or Security
+        # Only use if it is a hotfix or security release
+        if: contains(github.ref_name, '-hotfix') || contains(github.ref_name, '-security')
+        shell: bash
+        run: echo "hello, this should run only on hotfix or security tags"
+      - name: All except Hotfix or Security
+        # Don't run on hotfix or security tags
+        if: ${{ !contains(github.ref_name, '-hotfix') && !contains(github.ref_name, '-security') }}
+        shell: bash
+        run: echo "hello, this should run on all except hotfix or security"
+  only-tags:
+    if: github.event_name == 'push' && contains(github.ref, 'tags/') # Only run on tags
+    runs-on: ubuntu-latest
+    steps:
+      - name: All
+        shell: bash
+        run: echo "hello, this should run on all runs"
+      - name: Only Hotfix
+        # Only use if it is a hotfix or security release
+        if: contains(github.ref_name, '-hotfix')
+        shell: bash
+        run: echo "hello, this should run only on hotfix"
+      - name: Hotfix or Security
+        # Only use if it is a hotfix or security release
+        if: contains(github.ref_name, '-hotfix') || contains(github.ref_name, '-security')
+        shell: bash
+        run: echo "hello, this should run only on hotfix or security tags"
+      - name: All except Hotfix or Security
+        # Don't run on hotfix or security tags
+        if: ${{ !contains(github.ref_name, '-hotfix') && !contains(github.ref_name, '-security') }}
+        shell: bash
+        run: echo "hello, this should run on all except hotfix or security"
