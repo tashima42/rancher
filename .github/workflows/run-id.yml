@@ -7,4 +7,4 @@ jobs:
     steps:
       - name: Run ID
         shell: bash
-        run: echo "run id: ${{ github.run_id }}"
+        run: echo "hello, this should run on all runs ${{ github.run_id }}"
