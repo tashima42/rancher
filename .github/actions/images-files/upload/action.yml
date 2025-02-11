@@ -1,0 +1,44 @@
+name: "Upload Images Files"
+runs:
+  using: "composite"
+  steps:
+    - name: Read App Secrets
+      uses: rancher-eio/read-vault-secrets@main
+      with:
+        secrets: |
+          secret/data/github/repo/${{ github.repository }}/github/app-credentials appId | APP_ID ;
+          secret/data/github/repo/${{ github.repository }}/github/app-credentials privateKey | PRIVATE_KEY
+    - name: Create App Token
+      uses: actions/create-github-app-token@v1
+      id: app-token
+      with:
+        app-id: ${{ env.APP_ID }}
+        private-key: ${{ env.PRIVATE_KEY }}
+    - name: Generate sha256sum
+      shell: bash
+      env:
+        ARTIFACTS_TYPE: "components"
+      run: scripts/artifacts-hashes.sh
+    - name: Add release notes
+      env:
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
+      run: |
+        NOTES=$(cat bin/rancher-components.txt)
+        gh release edit -R ${{ github.repository }} ${{ env.TAG }} --notes "$NOTES"
+    - name: Upload artifacts to bucket
+      env:
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
+      run: |
+        set -ex
+
+        source scripts/artifacts-list.sh
+
+        if (( ${#ARTIFACTS[@]} == 0 ));then
+          >&2 echo "missing ARTIFACTS env var"
+          exit 1
+        fi
+        for artifact in "${ARTIFACTS[@]}"; do
+          gh release upload -R ${{ env.REPOSITORY_OWNER }}/rancher ${{ env.TAG }} "$ARTIFACTS_BASE_DIR/$artifact" --clobber
+        done
+
+        gh release upload -R ${{ env.REPOSITORY_OWNER }}/rancher ${{ env.TAG }} "$ARTIFACTS_BASE_DIR/$CHECKSUM_FILE" --clobber
