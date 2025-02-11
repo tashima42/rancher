@@ -29,6 +29,7 @@ jobs:
       parent_run_id: ${{ github.run_id }}
   push-images:
     needs: [unit-tests, build-server, build-agent, integration-tests]
+    uses: ./.github/workflows/push-images.yml
   build-publish-chart:
     runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     container: registry.suse.com/bci/bci-base:latest
