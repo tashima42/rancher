@@ -1,0 +1,71 @@
+name: Release
+on: 
+  push:
+    tags:
+      - "v*"
+env:
+  COMMIT: ${{ github.sha }}
+  REPOSITORY_OWNER: ${{ github.repository_owner }}
+  IMAGE: ${{ github.repository_owner }}/rancher
+  IMAGE_AGENT: ${{ github.repository_owner }}/rancher-agent
+  IMAGE_INSTALLER: ${{ github.repository_owner }}/system-agent-installer-rancher
+  REGISTRY: "stgregistry.suse.com"
+  DOCKERIO_REGISTRY: "docker.io"
+  AWS_DEFAULT_REGION: "us-east-1"
+jobs:
+  unit-tests:
+    uses: ./.github/workflows/unit-test.yml
+  build-server:
+    uses: ./.github/workflows/release/build-server.yml
+  build-agent:
+    needs: [build-server]
+    uses: ./.github/workflows/release/build-agent.yml
+  build-agent-windows:
+    uses: ./.github/workflows/release/build-agent-windows.yml
+  integration-tests:
+    needs: [build-agent]
+    uses: ./.github/workflows/integration-tests.yml
+    with:
+      parent_run_id: ${{ github.run_id }}
+  push-images:
+    needs: [unit-tests, build-server, build-agent, integration-tests]
+  build-publish-chart:
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
+    container: registry.suse.com/bci/bci-base:latest
+    needs: [push-images]
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: 'build-chart-tag'
+      # instead of cancelling other runs, wait until they are finished
+      cancel-in-progress: false
+    env:
+      ARCH: amd64
+      CHARTS_DISTRIBUTION_ID: EKGBR3PUZ9J56
+    steps:
+      - name: install dependencies
+        shell: bash
+        run: zypper install -y git jq awk aws-cli
+      - name: Git safe directory
+        run: git config --global --add safe.directory "$PWD"
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Build
+        uses: ./.github/workflows/actions/charts/build
+      - name: Upload
+        uses: ./.github/workflows/actions/charts/upload
+  merge-server-manifest:
+    needs: [push-images]
+    uses: ./.github/workflows/release/merge-server-manifest.yml
+  merge-agent-manifest:
+    needs: [push-images, build-agent-windows]
+    uses: ./.github/workflows/release/merge-agent-manifest.yml
+  build-installer:
+    needs: [build-publish-chart, merge-server-manifest]
+    uses: ./.github/workflows/release/build-installer.yml
+  merge-installer-manifest:
+    needs: [build-installer]
+    uses: ./.github/workflows/release/merge-installer-manifest.yml
+  images-files:
+    uses: ./.github/workflows/release/images-files.yml

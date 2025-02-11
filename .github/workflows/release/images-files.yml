@@ -1,0 +1,82 @@
+name: Generate and Upload Images Files
+on:
+  workflow_call:
+jobs:
+  create-images-files:
+    runs-on: runs-on,runner=2cpu-linux-x64,image=ubuntu22-full-x64,run-id=${{ github.run_id }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      REGISTRY: ""
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Environment Variables
+        uses: ./.github/actions/setup-tag-env
+      - id: env 
+        name: Setup Dependencies Env Variables
+        uses: ./.github/actions/setup-build-env
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '${{ steps.env.outputs.GO_VERSION }}'
+      - name: Download data.json
+        run: |
+          mkdir -p bin
+          curl -sLf https://releases.rancher.com/kontainer-driver-metadata/${{ steps.env.outputs.CATTLE_KDM_BRANCH }}/data.json > ./bin/data.json
+          cp ./bin/data.json ./bin/rancher-data.json
+      - name: Create k3s images file
+        uses: ./.github/actions/k3s-images
+        with:
+          k3s_version: ${{ steps.env.outputs.CATTLE_K3S_VERSION }}
+      - name: Create files
+        run: |
+          mkdir -p $HOME/bin
+          touch $HOME/bin/rancher-rke-k8s-versions.txt
+
+          mkdir -p bin
+          mv ./k3s-airgap-images.tar ./bin
+      - name: Create components and images files
+        shell: bash
+        run: ./scripts/create-components-images-files.sh
+      - name: Move files
+        run: |
+          mv $HOME/bin/* ./bin
+      - name: Create sha256sum.txt file
+        run: ./scripts/artifacts-hashes.sh
+      - name: Load Secrets from Vault
+        uses: rancher-eio/read-vault-secrets@main
+        with:
+          secrets: |
+            secret/data/github/repo/${{ github.repository }}/prime-artifacts-uploader-access/credentials token | PRIME_ARTIFACTS_UPLOADER_ACCESS_KEY ;
+            secret/data/github/repo/${{ github.repository }}/prime-artifacts-uploader-secret/credentials token | PRIME_ARTIFACTS_UPLOADER_SECRET_KEY ;
+      - name: Upload artifacts to bucket
+        shell: bash
+        run: |
+          set -ex
+
+          artifacts=(
+            "rancher-components.txt"
+            "rancher-data.json"
+            "rancher-images-origins.txt"
+            "rancher-images-sources.txt"
+            "rancher-images.txt"
+            "rancher-load-images.ps1"
+            "rancher-load-images.sh"
+            "rancher-mirror-to-rancher-org.ps1"
+            "rancher-mirror-to-rancher-org.sh"
+            "rancher-rke-k8s-versions.txt"
+            "rancher-save-images.ps1"
+            "rancher-save-images.sh"
+            "rancher-windows-images-sources.txt"
+            "rancher-windows-images.txt"
+            "sha256sum.txt"
+          )
+          for artifact in "${artifacts[@]}"; do
+            AWS_ACCESS_KEY_ID=${{ env.PRIME_ARTIFACTS_UPLOADER_ACCESS_KEY }} AWS_SECRET_ACCESS_KEY=${{ env.PRIME_ARTIFACTS_UPLOADER_SECRET_KEY }} aws s3 cp "./bin/$artifact" "s3://prime-artifacts/rancher/${{ env.TAG }}/$artifact"
+          done
+      - name: Build artifacts index
+        env:
+          ARTIFACTS_DISTRIBUTION_ID: EUK3RJTBZG1QG
+        uses: ./.github/actions/build-artifacts-index
+
