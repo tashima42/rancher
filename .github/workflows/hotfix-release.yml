@@ -1,11 +1,10 @@
-name: conditional-steps-poc
+name: hotfix release
 on: 
   push:
     branches:
       - "poc-conditional-steps"
     tags:
-      - "v*"
-      - "!v*-hotfix*"
+      - "v*-hotfix*"
 jobs:
   all:
     runs-on: ubuntu-latest
