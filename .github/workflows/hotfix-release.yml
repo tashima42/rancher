@@ -13,7 +13,30 @@ jobs:
     uses: ./.github/workflows/unit-test.yml
   build-publish-chart:
     needs: [push-images]
-    uses: ./.github/workflows/build-publish-chart.yml
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
+    container: registry.suse.com/bci/bci-base:latest
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: 'build-chart-tag'
+      # instead of cancelling other runs, wait until they are finished
+      cancel-in-progress: false
+    env:
+      ARCH: amd64
+      AWS_DEFAULT_REGION: "us-east-1"
+    steps:
+      - name: install dependencies
+        shell: bash
+        run: zypper install -y git
+      - name: Git safe directory
+        run: git config --global --add safe.directory "$PWD"
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: setup and build
+        uses: ./.github/actions/build-publish-chart/setup-build.yml
+      - name: publish
+        uses: ./.github/actions/build-publish-chart/publish-aws.yml
   build-server:
     uses: ./.github/workflows/build-server.yml
   build-agent:
