@@ -22,8 +22,6 @@ jobs:
   integration-tests:
     needs: [build-agent]
     uses: ./.github/workflows/integration-tests.yml
-    with:
-      parent_run_id: ${{ github.run_id }}
   build-agent-windows:
     uses: ./.github/workflows/build-agent-windows.yml
   push-images:
