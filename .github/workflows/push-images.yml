@@ -1,6 +1,19 @@
 name: Push Server and agent images
 on:
   workflow_call:
+    inputs:
+      registry:
+        type: string
+        description: "docker registry to push the image to"
+        required: true
+      registry-username-path:
+        type: string
+        description: "registry username secret path"
+        required: true
+      registry-password-path:
+        type: string
+        description: "registry password secret path"
+        required: true
 jobs:
   push-images:
     strategy:
@@ -13,7 +26,7 @@ jobs:
       id-token: write
     env:
       ARCH: ${{ matrix.arch }}
-      REGISTRY: "stgregistry.suse.com"
+      REGISTRY: ${{ inputs.registry }}
     steps:
       - name: Environment variables
         shell: bash
@@ -35,13 +48,13 @@ jobs:
         uses: rancher-eio/read-vault-secrets@main
         with:
           secrets: |
-            secret/data/github/repo/${{ github.repository }}/stage-registry-username/credentials token | STAGE_REGISTRY_USERNAME ;
-            secret/data/github/repo/${{ github.repository }}/stage-registry-password/credentials token | STAGE_REGISTRY_PASSWORD ;
+            ${{ inputs.registry-username-path }} | REGISTRY_USERNAME ;
+            ${{ inputs.registry-password-path }} | REGISTRY_PASSWORD ;
       - name: Docker Registry Login
         uses: docker/login-action@v3
         with:
-          username: ${{ env.STAGE_REGISTRY_USERNAME }}
-          password: ${{ env.STAGE_REGISTRY_PASSWORD }}
+          username: ${{ env.REGISTRY_USERNAME }}
+          password: ${{ env.REGISTRY_PASSWORD }}
           registry: ${{ env.REGISTRY }}
       - name: Push server image
         run: |

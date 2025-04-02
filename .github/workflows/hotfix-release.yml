@@ -8,6 +8,8 @@ env:
   REGISTRY: "stgregistry.suse.com"
   DOCKERIO_REGISTRY: "docker.io"
   AWS_DEFAULT_REGION: "us-east-1"
+  REGISTRY_USERNAME_SECRET_PATH: "secret/data/github/repo/${{ github.repository }}/stage-registry-username/credentials token"
+  REGISTRY_PASSWORD_SECRET_PATH: "secret/data/github/repo/${{ github.repository }}/stage-registry-password/credentials token"
 jobs:
   unit-tests:
     uses: ./.github/workflows/unit-test.yml
@@ -47,20 +49,44 @@ jobs:
     uses: ./.github/workflows/integration-tests.yml
   build-agent-windows:
     uses: ./.github/workflows/build-agent-windows.yml
+    with:
+      registry: ${{ env.REGISTRY }}
+      registry-username-path: ${{ env.REGISTRY_USERNAME_SECRET_PATH }}
+      registry-password-path: ${{ env.REGISTRY_PASSWORD_SECRET_PATH }}
   push-images:
     needs: [unit-tests, integration-tests]
     uses: ./.github/workflows/push-images.yml
+    with:
+      registry: ${{ env.REGISTRY }}
+      registry-username-path: ${{ env.REGISTRY_USERNAME_SECRET_PATH }}
+      registry-password-path: ${{ env.REGISTRY_PASSWORD_SECRET_PATH }}
   merge-server-manifest:
     needs: [push-images]
     uses: ./.github/workflows/merge-server-manifest.yml
+    with:
+      registry: ${{ env.REGISTRY }}
+      registry-username-path: ${{ env.REGISTRY_USERNAME_SECRET_PATH }}
+      registry-password-path: ${{ env.REGISTRY_PASSWORD_SECRET_PATH }}
   merge-agent-manifest:
     needs: [push-images, build-agent-windows]
     uses: ./.github/workflows/merge-agent-manifest.yml
+    with:
+      registry: ${{ env.REGISTRY }}
+      registry-username-path: ${{ env.REGISTRY_USERNAME_SECRET_PATH }}
+      registry-password-path: ${{ env.REGISTRY_PASSWORD_SECRET_PATH }}
   build-installer:
     needs: [build-publish-chart, merge-server-manifest]
     uses: ./.github/workflows/build-installer.yml
+    with:
+      registry: ${{ env.REGISTRY }}
+      registry-username-path: ${{ env.REGISTRY_USERNAME_SECRET_PATH }}
+      registry-password-path: ${{ env.REGISTRY_PASSWORD_SECRET_PATH }}
   merge-installer-manifest:
     needs: [build-installer]
     uses: ./.github/workflows/merge-installer-manifest.yml
+    with:
+      registry: ${{ env.REGISTRY }}
+      registry-username-path: ${{ env.REGISTRY_USERNAME_SECRET_PATH }}
+      registry-password-path: ${{ env.REGISTRY_PASSWORD_SECRET_PATH }}
   create-images-files:
     uses: ./.github/workflows/create-images-files.yml

@@ -1,6 +1,19 @@
 name: Merge server manifest
 on:
   workflow_call:
+    inputs:
+      registry:
+        type: string
+        description: "docker registry to push the image to"
+        required: true
+      registry-username-path:
+        type: string
+        description: "registry username secret path"
+        required: true
+      registry-password-path:
+        type: string
+        description: "registry password secret path"
+        required: true
 jobs:
   merge-server-manifest:
     runs-on: runs-on,runner=2cpu-linux-x64,image=ubuntu22-full-x64,run-id=${{ github.run_id }}
