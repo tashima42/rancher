@@ -1,0 +1,93 @@
+name: Pre Release
+on:
+  push:
+    tags:
+      - "v*-rc*"
+      - "v*-alpha*"
+env:
+  COMMIT: ${{ github.sha }}
+  REGISTRY: "docker.io"
+  DOCKERIO_REGISTRY: "docker.io"
+  AWS_DEFAULT_REGION: "us-east-1"
+  REGISTRY_USERNAME_SECRET_PATH: "secret/data/github/repo/${{ github.repository }}/dockerhub/rancher/credentials username"
+  REGISTRY_PASSWORD_SECRET_PATH: "secret/data/github/repo/${{ github.repository }}/dockerhub/rancher/credentials password"
+jobs:
+  unit-tests:
+    uses: ./.github/workflows/unit-test.yml
+  build-publish-chart:
+    needs: [push-images]
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
+    container: registry.suse.com/bci/bci-base:latest
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: 'build-chart-tag'
+      # instead of cancelling other runs, wait until they are finished
+      cancel-in-progress: false
+    env:
+      ARCH: amd64
+      AWS_DEFAULT_REGION: "us-east-1"
+    steps:
+      - name: install dependencies
+        shell: bash
+        run: zypper install -y git
+      - name: Git safe directory
+        run: git config --global --add safe.directory "$PWD"
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: setup and build
+        uses: ./.github/actions/build-publish-chart/setup-build.yml
+      - name: publish
+        uses: ./.github/actions/build-publish-chart/publish-gcp.yml
+  build-server:
+    uses: ./.github/workflows/build-server.yml
+  build-agent:
+    needs: [build-server]
+    uses: ./.github/workflows/build-agent.yml
+  integration-tests:
+    needs: [build-agent]
+    uses: ./.github/workflows/integration-tests.yml
+  build-agent-windows:
+    uses: ./.github/workflows/build-agent-windows.yml
+    with:
+      registry: ${{ env.REGISTRY }}
+      registry-username-path: ${{ env.REGISTRY_USERNAME_SECRET_PATH }}
+      registry-password-path: ${{ env.REGISTRY_PASSWORD_SECRET_PATH }}
+  push-images:
+    needs: [unit-tests, integration-tests]
+    uses: ./.github/workflows/push-images.yml
+    with:
+      registry: ${{ env.REGISTRY }}
+      registry-username-path: ${{ env.REGISTRY_USERNAME_SECRET_PATH }}
+      registry-password-path: ${{ env.REGISTRY_PASSWORD_SECRET_PATH }}
+  merge-server-manifest:
+    needs: [push-images]
+    uses: ./.github/workflows/merge-server-manifest.yml
+    with:
+      registry: ${{ env.REGISTRY }}
+      registry-username-path: ${{ env.REGISTRY_USERNAME_SECRET_PATH }}
+      registry-password-path: ${{ env.REGISTRY_PASSWORD_SECRET_PATH }}
+  merge-agent-manifest:
+    needs: [push-images, build-agent-windows]
+    uses: ./.github/workflows/merge-agent-manifest.yml
+    with:
+      registry: ${{ env.REGISTRY }}
+      registry-username-path: ${{ env.REGISTRY_USERNAME_SECRET_PATH }}
+      registry-password-path: ${{ env.REGISTRY_PASSWORD_SECRET_PATH }}
+  build-installer:
+    needs: [build-publish-chart, merge-server-manifest]
+    uses: ./.github/workflows/build-installer.yml
+    with:
+      registry: ${{ env.REGISTRY }}
+      registry-username-path: ${{ env.REGISTRY_USERNAME_SECRET_PATH }}
+      registry-password-path: ${{ env.REGISTRY_PASSWORD_SECRET_PATH }}
+  merge-installer-manifest:
+    needs: [build-installer]
+    uses: ./.github/workflows/merge-installer-manifest.yml
+    with:
+      registry: ${{ env.REGISTRY }}
+      registry-username-path: ${{ env.REGISTRY_USERNAME_SECRET_PATH }}
+      registry-password-path: ${{ env.REGISTRY_PASSWORD_SECRET_PATH }}
+  create-images-files:
+    uses: ./.github/workflows/create-images-files.yml

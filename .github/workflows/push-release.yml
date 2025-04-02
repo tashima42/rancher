@@ -7,6 +7,8 @@ on:
     tags:
       - "v*"
       - "!v*-hotfix*"
+      - "!v*-rc*"
+      - "!v*-alpha*"
 env:
   COMMIT: ${{ github.sha }}
   REPOSITORY_OWNER: ${{ github.repository_owner }}
