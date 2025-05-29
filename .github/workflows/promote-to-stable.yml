@@ -13,7 +13,6 @@ env:
   GIT_TAG: ${{ github.event.inputs.tag }}
 jobs:
   update-readme:
-    needs: [promote-docker-image]
     runs-on: ubuntu-latest
     permissions:
       contents: write
