@@ -13,5 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     container: registry.suse.com/bci/bci-base:latest
     steps:
+      - shell: bash
+        run: zypper install -y wget
       - name: setup ecm-distro-tools
         uses: tashima42/ecm-distro-tools@0ac21a6e9ec660b9715dfeed21eda60f4abfab20
