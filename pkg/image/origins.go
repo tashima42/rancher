@@ -313,7 +313,7 @@ func GenerateImageOrigins(linuxImagesFromArgs, targetImages, targetWindowsImages
 		return fmt.Errorf("could not create %s file: %w", imageOriginFileName, err)
 	}
 
-	originsFile.Chmod(0755)
+	originsFile.Chmod(0o755)
 	originsFile.WriteString(fileContents)
 	return originsFile.Close()
 }
@@ -363,7 +363,7 @@ func repoFromImage(image string) string {
 // UniqueTargetImages finds unique images in a list of targetImages,
 // ignoring the image version
 func UniqueTargetImages(targetImages []string) []string {
-	seenImages := make(map[string]interface{})
+	seenImages := make(map[string]any)
 	var uniqueImages []string
 	for _, e := range targetImages {
 		repo := repoFromImage(e)

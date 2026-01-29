@@ -1,3 +1,4 @@
+// Package image generates artfacts listing images information
 package image
 
 import (
@@ -66,7 +67,7 @@ func (c Charts) FetchImages(imagesSet map[string]map[string]struct{}) error {
 		}
 		// Append the remaining versions of the chart if the chart exists in the chartsToCheckConstraints map
 		// and the given Rancher version satisfies the chart's Rancher version constraint annotation.
-		chartName := versions[0].Metadata.Name
+		chartName := versions[0].Name
 		if _, ok := chartsToCheckConstraints[chartName]; ok {
 			for _, version := range versions[1:] {
 				if isConstraintSatisfied, err := c.checkChartVersionConstraint(*version); err != nil {
@@ -130,7 +131,7 @@ func (c Charts) FetchOCICharts(
 			filteredVersions = append(filteredVersions, latestVersion)
 		}
 
-		chartName := versions[0].Metadata.Name
+		chartName := versions[0].Name
 		if _, ok := chartsToCheckConstraints[chartName]; ok {
 			for _, version := range versions[1:] {
 				if isConstraintSatisfied, err := c.checkChartVersionConstraint(*version); err != nil {
@@ -229,8 +230,8 @@ func minMaxToConstraintStr(min, max string) string {
 }
 
 // pickImagesFromValuesMap walks a values map to find images, and add them to imagesSet.
-func pickImagesFromValuesMap(imagesSet map[string]map[string]struct{}, values map[interface{}]interface{}, chartNameAndVersion string, osType OSType, tagToIgnore string) error {
-	walkMap(values, func(inputMap map[interface{}]interface{}) {
+func pickImagesFromValuesMap(imagesSet map[string]map[string]struct{}, values map[any]any, chartNameAndVersion string, osType OSType, tagToIgnore string) error {
+	walkMap(values, func(inputMap map[any]any) {
 		repository, ok := inputMap["repository"].(string)
 		if !ok {
 			return
@@ -273,7 +274,7 @@ func pickImagesFromValuesMap(imagesSet map[string]map[string]struct{}, values ma
 }
 
 // decodeValueFilesInTgz reads tarball in tgzPath and returns a slice of values corresponding to values.yaml files found inside of it.
-func decodeValuesFilesInTgz(tgzPath string) ([]map[interface{}]interface{}, error) {
+func decodeValuesFilesInTgz(tgzPath string) ([]map[any]any, error) {
 	tgz, err := os.Open(tgzPath)
 	if err != nil {
 		return nil, err
@@ -285,7 +286,7 @@ func decodeValuesFilesInTgz(tgzPath string) ([]map[interface{}]interface{}, erro
 	}
 	defer gzr.Close()
 	tr := tar.NewReader(gzr)
-	var valuesSlice []map[interface{}]interface{}
+	var valuesSlice []map[any]any
 	for {
 		header, err := tr.Next()
 		switch {
@@ -294,7 +295,7 @@ func decodeValuesFilesInTgz(tgzPath string) ([]map[interface{}]interface{}, erro
 		case err != nil:
 			return nil, err
 		case header.Typeflag == tar.TypeReg && isValuesFile(header.Name):
-			var values map[interface{}]interface{}
+			var values map[any]any
 			if err := decodeYAMLFile(tr, &values); err != nil {
 				return nil, err
 			}
@@ -306,21 +307,21 @@ func decodeValuesFilesInTgz(tgzPath string) ([]map[interface{}]interface{}, erro
 }
 
 // walkMap walks inputMap and calls the callback function on all map type nodes including the root node.
-func walkMap(inputMap interface{}, callback func(map[interface{}]interface{})) {
+func walkMap(inputMap any, callback func(map[any]any)) {
 	switch data := inputMap.(type) {
-	case map[interface{}]interface{}:
+	case map[any]any:
 		callback(data)
 		for _, value := range data {
 			walkMap(value, callback)
 		}
-	case []interface{}:
+	case []any:
 		for _, elem := range data {
 			walkMap(elem, callback)
 		}
 	}
 }
 
-func decodeYAMLFile(r io.Reader, target interface{}) error {
+func decodeYAMLFile(r io.Reader, target any) error {
 	data, err := io.ReadAll(r)
 	if err != nil {
 		return err
