@@ -1,3 +1,4 @@
+// Package appco fetchs and parses appco artifacts from an oci charts repository
 package appco
 
 import "strings"

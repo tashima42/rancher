@@ -272,9 +272,9 @@ func TestSetRequiredImages(t *testing.T) {
 		imagesSet := make(map[string]map[string]struct{})
 		setRequiredImages(Linux, imagesSet)
 
-		kubeApiAuth := apisv3.ToolsSystemImages.AuthSystemImages.KubeAPIAuth
-		require.Contains(t, imagesSet, kubeApiAuth)
-		assert.Contains(t, imagesSet[kubeApiAuth], imageSourceSystem)
+		kubeAPIAuth := apisv3.ToolsSystemImages.AuthSystemImages.KubeAPIAuth
+		require.Contains(t, imagesSet, kubeAPIAuth)
+		assert.Contains(t, imagesSet[kubeAPIAuth], imageSourceSystem)
 	})
 	t.Run("windows images should be empty", func(t *testing.T) {
 		imagesSet := make(map[string]map[string]struct{})

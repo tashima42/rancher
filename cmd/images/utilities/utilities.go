@@ -1,3 +1,4 @@
+// Package utilities has helper functions to build artifacts
 package utilities
 
 import (
@@ -9,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/coreos/go-semver/semver"
+	ext "github.com/rancher/rancher/cmd/images/external"
 	img "github.com/rancher/rancher/pkg/image"
-	ext "github.com/rancher/rancher/pkg/image/external"
 	"github.com/rancher/rancher/pkg/kontainerdrivermetadata"
 	"github.com/rancher/rancher/pkg/settings"
 )
@@ -42,7 +43,7 @@ var (
 	}
 )
 
-// ImageTargetsAndSources is an aggregate type containing
+// ArtifactTargetsAndSources is an aggregate type containing
 // the list of images used by Rancher for Linux and Windows,
 // as well as the source of these images.
 type ArtifactTargetsAndSources struct {
@@ -145,7 +146,7 @@ func LoadScript(arch string, targetImages []string) error {
 		return err
 	}
 	defer load.Close()
-	load.Chmod(0755)
+	load.Chmod(0o755)
 
 	fmt.Fprint(load, getScript(arch, "load"))
 	return nil
@@ -162,7 +163,7 @@ func SaveScript(arch string, targetImages []string) error {
 		return err
 	}
 	defer save.Close()
-	save.Chmod(0755)
+	save.Chmod(0o755)
 
 	fmt.Fprint(save, getScript(arch, "save"))
 
@@ -179,7 +180,7 @@ func ImagesText(arch string, targetImages []string) error {
 		return err
 	}
 	defer save.Close()
-	save.Chmod(0755)
+	save.Chmod(0o755)
 
 	for _, image := range saveImages(targetImages) {
 		err := checkImage(image)
@@ -202,7 +203,7 @@ func ImagesAndSourcesText(arch string, targetImagesAndSources []string) error {
 		return err
 	}
 	defer save.Close()
-	save.Chmod(0755)
+	save.Chmod(0o755)
 
 	for _, imageAndSources := range saveImagesAndSources(targetImagesAndSources) {
 		if err := checkImage(strings.Split(imageAndSources, " ")[0]); err != nil {
@@ -224,7 +225,7 @@ func MirrorScript(arch string, targetImages []string) error {
 		return err
 	}
 	defer mirror.Close()
-	mirror.Chmod(0755)
+	mirror.Chmod(0o755)
 
 	scriptStarter := getScript(arch, "mirror")
 	fmt.Fprint(mirror, scriptStarter)
